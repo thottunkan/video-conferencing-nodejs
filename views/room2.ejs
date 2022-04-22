@@ -1,0 +1,503 @@
+<html>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"
+	integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB"
+	crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"
+	integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
+	crossorigin="anonymous"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://kit.fontawesome.com/c939d0e917.js"></script>
+<script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+<script src="https://kit.fontawesome.com/c939d0e917.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+	integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+	integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+<style>
+	@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Monoton&display=swap");
+
+	* {
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+	}
+
+	html {
+		font-size: 10px;
+		scroll-behavior: smooth;
+	}
+
+	body {
+		font-family: "Lato", sans-serif;
+		font-size: 1.5rem;
+		font-weight: 300;
+		background: #16161a;
+		color: #f3f3f3;
+	}
+
+	a {
+		text-decoration: none;
+		outline: none;
+		color: #333;
+	}
+
+	li {
+		list-style: none;
+	}
+
+	@keyframes hover {
+		50% {
+			transform: translateX(10px);
+		}
+	}
+
+	.offcanvas-menu>label {
+		top: 30px;
+		left: 30px;
+		position: fixed;
+		width: 40px;
+		height: 40px;
+		cursor: pointer;
+		transition: 0.3s ease;
+		display: flex;
+		align-items: center;
+		z-index: 9999;
+	}
+
+	.offcanvas-menu label span,
+	.offcanvas-menu label span::before,
+	.offcanvas-menu label span::after {
+		transition: background 0.3s, transform 0.3s;
+	}
+
+	.offcanvas-menu label span,
+	.offcanvas-menu label span::before,
+	.offcanvas-menu label span::after {
+		content: "";
+		position: absolute;
+		height: 4px;
+		width: 40px;
+		background: #b3b3b3;
+	}
+
+	.offcanvas-menu label span::before {
+		transform: translateY(-12px);
+	}
+
+	.offcanvas-menu label span::after {
+		transform: translateY(12px);
+	}
+
+	.offcanvas-menu nav {
+		position: fixed;
+		height: 100%;
+		width: 350px;
+		left: -350px;
+		overflow: hidden;
+		background: #fafbfc;
+		transition: 0.3s ease;
+		padding: 40px 30px;
+	}
+
+	.offcanvas-menu nav>div {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.offcanvas-menu nav>div a {
+		font-size: 2.5rem;
+		font-weight: 500;
+		display: flex;
+		align-items: center;
+		font-family: "Monoton", cursive;
+		background: linear-gradient(-90deg, #49a4ed 30%, #3d00a9 110%);
+
+		-webkit-text-fill-color: transparent;
+	}
+
+	.offcanvas-menu nav>div a i {
+		font-size: 4rem;
+		background: linear-gradient(120deg, #49a4ed 30%, #3d00a9 110%);
+
+		-webkit-text-fill-color: transparent;
+	}
+
+	.offcanvas-menu nav>div label {
+		width: 30px;
+		height: 30px;
+		display: flex !important;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: 0.3s ease;
+	}
+
+	.offcanvas-menu nav>div label span,
+	.offcanvas-menu nav>div label span:before,
+	.offcanvas-menu nav>div label span:after {
+		background: #4d4d4d;
+	}
+
+	.offcanvas-menu nav>ul {
+		margin-top: 30px;
+		counter-reset: nav-link-count;
+	}
+
+	.offcanvas-menu nav>ul li {
+		cursor: pointer;
+		padding: 10px 0;
+		transform: translateX(-30px);
+		opacity: 0;
+		transition: 0.4s ease;
+		counter-increment: nav-link-count;
+	}
+
+	.offcanvas-menu nav>ul li a {
+		font-size: 2.5rem;
+		line-height: 1.5;
+		font-weight: 400;
+		color: #333;
+		display: block;
+	}
+
+	.offcanvas-menu nav>ul li a::after {
+		content: " : "counter(nav-link-count);
+	}
+
+	.offcanvas-menu nav>ul li:hover {
+		animation: hover 0.5s;
+	}
+
+	.offcanvas-menu input[type="checkbox"] {
+		display: none;
+	}
+
+	.offcanvas-menu input[type="checkbox"]:checked~label {
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.offcanvas-menu input[type="checkbox"]:checked~nav {
+		left: 0;
+	}
+
+	.offcanvas-menu input[type="checkbox"]:checked~nav label span {
+		background: transparent;
+	}
+
+	.offcanvas-menu input[type="checkbox"]:checked~nav label span:before {
+		transform: rotate(-45deg);
+	}
+
+	.offcanvas-menu input[type="checkbox"]:checked~nav label span:after {
+		transform: rotate(45deg);
+	}
+
+	.offcanvas-menu input[type="checkbox"]:checked~nav label span:before,
+	.offcanvas-menu input[type="checkbox"]:checked~nav label span:after {
+		transition-delay: 0.2s;
+	}
+
+	.offcanvas-menu input[type="checkbox"]:checked~nav ul li {
+		opacity: 1;
+		transform: translateX(0px);
+	}
+
+	.offcanvas-menu input[type="checkbox"]:checked~nav ul li:nth-child(1) {
+		transition-delay: 0.1s;
+	}
+
+	.offcanvas-menu input[type="checkbox"]:checked~nav ul li:nth-child(2) {
+		transition-delay: 0.2s;
+	}
+
+	.offcanvas-menu input[type="checkbox"]:checked~nav ul li:nth-child(3) {
+		transition-delay: 0.3s;
+	}
+
+	.offcanvas-menu input[type="checkbox"]:checked~nav ul li:nth-child(4) {
+		transition-delay: 0.4s;
+	}
+
+	.offcanvas-menu input[type="checkbox"]:checked~nav ul li:nth-child(5) {
+		transition-delay: 0.5s;
+	}
+
+	.offcanvas-menu input[type="checkbox"]:checked~nav ul li:nth-child(6) {
+		transition-delay: 0.6s;
+	}
+
+	.offcanvas-menu input[type="checkbox"]:checked~nav ul li:nth-child(7) {
+		transition-delay: 0.7s;
+	}
+
+	section {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 80vh;
+		font-size: 4rem;
+		color: #b3b3b3;
+	}
+
+	section:nth-child(odd) {
+		background: #120a21;
+	}
+
+	section:nth-child(even) {
+		background: #170d28;
+	}
+
+	footer {
+		padding: 20px 0;
+		text-align: center;
+		font-size: 1.5rem;
+		background: #120a21;
+		color: #808080;
+	}
+
+	footer a {
+		color: #999;
+	}
+
+
+	.grid-container {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		grid-gap: 10px;
+		background-color: #2196F3;
+		padding: 10px;
+	}
+
+	.grid-container>div {
+		background-color: rgba(255, 255, 255, 0.8);
+		text-align: center;
+		padding: 20px 0;
+		width: 300px;
+		height: 300px;
+
+	}
+
+	#video-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, 300px);
+		grid-auto-rows: 300px;
+		flex-direction: row;
+	}
+
+	video {
+		width: 600px;
+		height: 400px;
+		object-fit: cover;
+	}
+
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		grid-gap: 20px;
+		align-items: stretch;
+	}
+
+	.grid img {
+		border: 1px solid #ccc;
+		box-shadow: 2px 2px 6px 0px rgba(0, 0, 0, 0.3);
+		max-width: 100%;
+	}
+
+	.videos__group {
+		flex-grow: 1;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 1rem;
+		background-color: var(--main-dark);
+	}
+</style>
+
+
+<header class="offcanvas-menu">
+	<input type="checkbox" id="toogle-menu" />
+
+	<label for="toogle-menu" class="toogle-open"><span></span></label>
+
+	<nav>
+		<div>
+			<a href=""></a>
+			<h2 class="text-dark">Messages</h2>
+			<label for="toogle-menu" class="toogle-close">
+				<span></span>
+			</label>
+		</div>
+		<ul>
+			<li>
+
+			</li>
+
+		</ul>
+
+		<ul id="message_list">
+			<li>
+
+			</li>
+		</ul>
+	</nav>
+</header>
+
+<main>
+	<div class="container">
+		<center><br>
+			<div class="row">
+				<div class="col-8"></div>
+				<div class="col-4">
+					<div class="input-group">
+						<input type="text" height="300" style="height: 50px;" class="form-control" id="chat_message"
+							placeholder="Type Message...." aria-describedby="inputGroupPrepend2">
+						<div class="input-group-prepend"
+							style="display: flex;justify-content: center;align-items: center;">
+							<span class="input-group-text btn btn-outline-success"
+								style="height: 50px;display: flex;align-items: center;justify-content: center;"
+								onclick="send()" id="inputGroupPrepend2"><i style="width: 50px;"
+									class="fa fa-paper-plane"></i></span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</center>
+
+	</div>
+	<main class="grid" id="grid-container"
+		style="display: flex; align-items: center; height: 100vh;justify-content: space-evenly;padding:10px;">
+		<div id="grid-item" style="display: flex;justify-content: space-evenly;align-items: center;">
+	</main>
+	<div class="fixed-bottom">
+		<nav class="navbar navbar-light bg-dark"
+			style="height: 70px;align-items: center;justify-content: space-evenly;display: flex;">
+			<div>
+				<button class="btn btn-outline-success" onclick="mutemike()"
+					style="height: 40px;width: 70px;border-radius: 20px;font-size: 12px;" type="button"> <i
+						id="muteicon" class="fa fa-microphone"></i></button>
+				<button class="btn btn-outline-success" onclick="mutevideo()"
+					style="height: 40px;width: 70px;border-radius: 20px;" type="button"> <i id="stopVideo"
+						class="fa fa-video-camera"></i></button>
+				<button class="btn btn-outline-success" id="" onclick="invite()"
+					style="height: 40px;width: 70px;border-radius: 20px;" type="button"> <i
+						class="fa fa-user-plus"></i></button>
+				<button class="btn btn-outline-success" id="" onclick="shareScreen()"
+					style="height: 40px;width: 70px;border-radius: 20px;" type="button">Share Screen</button>
+			</div>
+			<div>
+				<label for="" class="text-white">Powered by Ambadi Narayan (MCA 2020-22)</label><br>
+				<label for="" class="text-white">Rajagiri College of Social Sciences</label>
+			</div>
+		</nav>
+
+	</div>
+
+
+
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.3.2/peerjs.js.map"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="javascripts/notify.js"></script>
+<script src="javascripts/script.js"></script>
+<script>
+	const ROOM_ID = "<%= roomid %>";
+
+	socket.on("receive-room-msg", (msg) => {
+		// console.log(msg.msg);
+		// alert(msg.msg);
+	});
+
+
+	function invite() {
+		prompt("invite url", location.href);
+	}
+	function mutemike(e) {
+		console.log(mediaStream.getAudioTracks()[0].enabled);
+		if (mediaStream.getAudioTracks()[0].enabled) {
+			mediaStream.getAudioTracks()[0].enabled = false;
+			e.style.backgroundColor = 'red';
+			document.getElementById("muteicon").classList.remove('fas fa-sm fa-microphone');
+			document.getElementById("muteicon").classList.add('fa-microphone-slash');
+		} else {
+			mediaStream.getAudioTracks()[0].enabled = true;
+			e.style.backgroundColor = '#198754';
+			document.getElementById("muteicon").classList.add('fa-microphone');
+			document.getElementById("muteicon").classList.remove('fa-microphone-slash');
+		}
+		console.log();
+	}
+	function mutevideo(e) {
+		console.log(mediaStream.getVideoTracks()[0].enabled);
+		if (mediaStream.getVideoTracks()[0].enabled) {
+			mediaStream.getVideoTracks()[0].enabled = false;
+			e.style.backgroundColor = 'red';
+			//document.getElementById("stopVideo").classList.remove('fa-video-camera');
+			document.getElementById("stopVideo").classList.add('fa-video-slash');
+		} else {
+			mediaStream.getVideoTracks()[0].enabled = true;
+			e.style.backgroundColor = '#198754';
+			// document.getElementById("stopVideo").classList.add('fa-video-camera');
+			document.getElementById("stopVideo").classList.remove('fa-video-slash');
+		}
+
+	}
+
+	function send() {
+		var msg = document.getElementById("chat_message").value;
+		var msglst = document.getElementById("message_list");
+		var li = document.createElement("LI");
+		li.innerHTML = `<div class='alert alert-dark' role='alert'>${msg}</div>`;
+		msglst.append(li);
+		socket.emit("send-room-msgs", msg);
+		$("#chat_message").notify(`Message sent`, { position: " bottom center" });
+	}
+	socket.on("room-msgs", function (msg) {
+
+		var msglst = document.getElementById("message_list");
+		var li = document.createElement("LI");
+		li.innerHTML = `<div class='alert alert-primary' role='alert'>${msg.msg}</div>`;
+		msglst.append(li);
+	});
+	isshare = false;
+	function shareScreen() {
+		navigator.mediaDevices.getDisplayMedia({
+			video: {
+				cursor: "always"
+			},
+			audio: {
+				echoCancellation: true,
+				noiseSuppression: true
+			}
+		}).then((stream) => {
+			let videoTrack = stream.getVideoTracks()[0];
+			let sender;
+			if (remotePeer) {
+				sender = remotePeer.getSenders().find(function (s) {
+					return s.track.kind == videoTrack.kind;
+				});
+				stream = videoTrack;
+				videoTrack.onended = () => {
+					sender.replaceTrack(mediaStream.getVideoTracks()[0]);
+				}
+
+			} else {
+				sender = currentPeer.getSenders().find(function (s) {
+					return s.track.kind == videoTrack.kind;
+				});
+				videoTrack.onended = () => {
+					sender.replaceTrack(mediaStream.getVideoTracks()[0]);
+				}
+			}
+			sender.replaceTrack(videoTrack);
+		}).catch((err) => {
+			console.log("share screen error" + err);
+		})
+	}
+
+
+</script>
+
+</html>

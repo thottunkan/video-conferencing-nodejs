@@ -1,0 +1,123 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('videochat:server');
+var http = require('http');
+const { PeerServer } = require('peer');
+const peerServer = PeerServer({ port: 3001, path: '/' });
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+const her = "vidchatconf.herokuapp.com"
+const io = require("socket.io")(server, {
+  cors: {
+    origin: her,
+    methods: ["GET", "POST"],
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("new connection ");
+  socket.on("join-room", (roomid, userid, username) => {
+    console.log(roomid, userid);
+    socket.join(roomid);
+    socket.broadcast.to(roomid).emit("user-connected", userid, username);
+    socket.on("send-room-msgs", (msg) => {
+      console.log(msg);
+      socket.broadcast.to(roomid).emit("room-msgs", { msg: msg });
+    })
+    socket.on("disconnect", () => {
+      socket.broadcast.to(roomid).emit("user-disconnected", userid, username);
+    })
+  });
+
+});
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+// const options = {
+//   debug:true,
+//   port:3001,
+//   path:"/myapp"
+// }
+// const peersrvr = app.listen(3001);
+// const peerServer = ExpressPeerServer(peersrvr,options)
+// app.use("/peerjs",peerServer)
+
+const ser = server.listen(port);
+ser.on('error', onError);
+ser.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
